@@ -78,7 +78,15 @@ view model =
 
 
 renderTag tag =
-    li [] [ text tag ]
+    li [class "tag-card"]
+        [ div [ class "card" ]
+            [ div [ class "card-body" ]
+                [ p [ class "name"] [ text tag ]
+                , button [ class "btn btn-secondary" ] [ text "Edit" ]
+                , button [ class "btn btn-primary" ] [ text "Add" ]
+                ]
+            ]
+        ]
 
 
 viewGif : Model -> Html Msg
@@ -86,7 +94,7 @@ viewGif model =
     case model of
         Failure ->
             div []
-                [ text "I could not load a random cat for some reason. "
+                [ text "I could not load tags for some reason. "
                 ]
 
         Loading ->
@@ -94,7 +102,7 @@ viewGif model =
 
         Success tags ->
             div []
-                [ ul []
+                [ ul [class "tag-container"]
                     (List.map renderTag tags)
                 ]
 
