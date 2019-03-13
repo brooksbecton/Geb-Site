@@ -1,4 +1,4 @@
-module Main exposing (Model(..), Msg(..), getTags, init, main, subscriptions, tagDecoder, update, view, viewGif)
+module Main exposing (Model, Msg(..), getTags, init, main, subscriptions, tagDecoder, update, view, viewGif)
 
 import Browser
 import Html exposing (..)
@@ -25,15 +25,21 @@ main =
 -- MODEL
 
 
-type Model
+type TagLoadingStatus
     = Failure
     | Loading
     | Success (List String)
 
 
+type alias Model =
+    { tagLoadingStatus : TagLoadingStatus
+    , modalOpen : Bool
+    }
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Loading, getTags )
+    ( { tagLoadingStatus = Loading, modalOpen = False }, getTags )
 
 
 
@@ -50,10 +56,10 @@ update msg model =
         GotTags result ->
             case result of
                 Ok tags ->
-                    ( Success tags, Cmd.none )
+                    ( { model | tagLoadingStatus = Success tags }, Cmd.none )
 
                 Err _ ->
-                    ( Failure, Cmd.none )
+                    ( { model | tagLoadingStatus = Failure }, Cmd.none )
 
 
 
@@ -74,14 +80,26 @@ view model =
     div []
         [ h2 [] [ text "G.E.B Tags" ]
         , viewGif model
+        , renderModal model
         ]
 
 
+renderModal : Model -> Html Msg
+renderModal model =
+    if model.modalOpen == True then
+        div []
+            [ h2 [] [ text "Modal" ]
+            ]
+
+    else
+        div [] []
+
+
 renderTag tag =
-    li [class "tag-card"]
+    li [ class "tag-card" ]
         [ div [ class "card" ]
             [ div [ class "card-body" ]
-                [ p [ class "name"] [ text tag ]
+                [ p [ class "name" ] [ text tag ]
                 , button [ class "btn btn-secondary" ] [ text "Edit" ]
                 , button [ class "btn btn-primary" ] [ text "Add" ]
                 ]
@@ -91,7 +109,7 @@ renderTag tag =
 
 viewGif : Model -> Html Msg
 viewGif model =
-    case model of
+    case model.tagLoadingStatus of
         Failure ->
             div []
                 [ text "I could not load tags for some reason. "
@@ -102,7 +120,7 @@ viewGif model =
 
         Success tags ->
             div []
-                [ ul [class "tag-container"]
+                [ ul [ class "tag-container" ]
                     (List.map renderTag tags)
                 ]
 
