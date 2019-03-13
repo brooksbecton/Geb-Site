@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), getTags, init, main, subscriptions, tagDecoder, update, view, viewGif)
+module Main exposing (Model, Msg(..), getTags, init, main, renderGifs, subscriptions, tagDecoder, update, view)
 
 import Browser
 import Html exposing (..)
@@ -48,6 +48,9 @@ init _ =
 
 type Msg
     = GotTags (Result Http.Error (List String))
+    | AddGif
+    | EditGif
+    | CloseModal
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,6 +63,15 @@ update msg model =
 
                 Err _ ->
                     ( { model | tagLoadingStatus = Failure }, Cmd.none )
+
+        AddGif ->
+            ( { model | modalOpen = True }, Cmd.none )
+
+        EditGif ->
+            ( { model | modalOpen = True }, Cmd.none )
+
+        CloseModal ->
+            ( { model | modalOpen = False }, Cmd.none )
 
 
 
@@ -79,7 +91,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "G.E.B Tags" ]
-        , viewGif model
+        , renderGifs model
         , renderModal model
         ]
 
@@ -89,26 +101,28 @@ renderModal model =
     if model.modalOpen == True then
         div []
             [ h2 [] [ text "Modal" ]
+            , button [ class "btn", onClick CloseModal ] [ text "close" ]
             ]
 
     else
         div [] []
 
 
+renderTag : String -> Html Msg
 renderTag tag =
     li [ class "tag-card" ]
         [ div [ class "card" ]
             [ div [ class "card-body" ]
                 [ p [ class "name" ] [ text tag ]
-                , button [ class "btn btn-secondary" ] [ text "Edit" ]
-                , button [ class "btn btn-primary" ] [ text "Add" ]
+                , button [ class "btn btn-secondary", onClick EditGif ] [ text "Edit" ]
+                , button [ class "btn btn-primary", onClick AddGif ] [ text "Add" ]
                 ]
             ]
         ]
 
 
-viewGif : Model -> Html Msg
-viewGif model =
+renderGifs : Model -> Html Msg
+renderGifs model =
     case model.tagLoadingStatus of
         Failure ->
             div []
